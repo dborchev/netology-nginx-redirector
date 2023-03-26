@@ -16,3 +16,17 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag askbow/netology-teapot:$(date +%s)
+    - name: Login to Yandex Cloud Container Registry
+      id: login-cr
+      uses: yc-actions/yc-cr-login@v1
+      with:
+        yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+    - name: Build and push to YC
+      env:
+        CR_REPOSITORY: ${{ secrets.CR_REPOSITORY }}
+        CR_REGISTRY: ${{ secrets.CR_REGISTRY }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build . --file Dockerfile --tag cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG
+        docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG
+        
