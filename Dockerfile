@@ -8,4 +8,4 @@ RUN apk update && \
      -out /etc/ssl/certs/nginx-selfsigned.crt && \
     curl https://ssl-config.mozilla.org/ffdhe2048.txt -o  /etc/ssl/dhparam;
 
-COPY nginx-sites-enabled-default /etc/nginx/sites-enabled/default
+COPY nginx-sites-enabled-default /etc/nginx/conf.d/default.conf
