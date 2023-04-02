@@ -35,22 +35,13 @@ jobs:
     needs: build
     steps:
     - name: 'Checkout'
-      uses: 'actions/checkout@v1'
+      uses: 'actions/checkout@v3'
 
     - name: 'Deploy'
-      # Parameters are pulled directly from the GitHub deployment event so the
-      # configuration for the job here is very minimal.
-      uses: 'deliverybot/helm@v1.5.0'
+      uses: WyriHaximus/github-action-helm3@v3
       with:
-        helm: helm3
-        token: '${{ github.token }}'
-        version: '${{ github.sha }}'
-        chart: './helm'
-        task: 'upgrade'
-        namespace: 'netology'
-        values: |
-          image.repository: "cr.yandex/${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPOSITORY }}"
-        value-files: "./helm/values.yaml"
-        
+        kubeconfig: '${{ secrets.KUBECONFIG }}'
+        exec: helm upgrade latest ./helm --install --namespace netology --set image.repository="cr.yandex/${CR_REGISTRY}/${CR_REPOSITORY}"
       env:
-        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+        CR_REPOSITORY: ${{ secrets.CR_REPOSITORY }}
+        CR_REGISTRY: ${{ secrets.CR_REGISTRY }}
