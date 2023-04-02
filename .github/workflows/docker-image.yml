@@ -54,6 +54,6 @@ jobs:
        run: mkdir -p $HOME/.kube; echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
      - name: 'Get teapot load balancer IP'
        id: svc
-       run: echo ::set-env name=TEAPOT::$( kubectl get -n netology svc | grep teapot | awk -F' ' '{print $4}')
+       run: echo "TEAPOT=$( kubectl get -n netology svc | grep teapot | awk -F' ' '{print $4}')" >> $GITHUB_ENV
      - name: 'Test teapot ping'
        run: curl https://${{ env.TEAPOT }}/ping --insecure -I
