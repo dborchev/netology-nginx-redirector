@@ -37,7 +37,7 @@ server {
   # our model app has to do something
   location / {
     default_type text/plain;
-    return 418; # I'm a teapot
+    return 418 "418 I'm a teapot"; # I'm a teapot
   }
 
 }
