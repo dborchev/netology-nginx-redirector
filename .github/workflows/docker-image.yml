@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: 'Checkout'
+      uses: actions/checkout@v3
     - name: Login to Yandex Cloud Container Registry
       id: login-cr
       uses: yc-actions/yc-cr-login@v1
@@ -29,15 +30,25 @@ jobs:
         docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG
         docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:latest
         
-  deploy:
-    runs-on: ubuntu-latest
+  deployment:
+    runs-on: 'ubuntu-latest'
     steps:
-    - uses: actions/checkout@v1
-    - name: Login to k8s cluster
-      uses: actions-hub/kubectl@master
-      env:
-        KUBE_HOST: ${{ secrets.K8S_CLUSTER_URL }}
-        KUBE_TOKEN: ${{ secrets.K8S_MGMT_TOKEN }}
-        KUBE_USERNAME: cicd-deployer
+    - name: 'Checkout'
+      uses: 'actions/checkout@v1'
+
+    - name: 'Deploy'
+      # Parameters are pulled directly from the GitHub deployment event so the
+      # configuration for the job here is very minimal.
+      uses: 'deliverybot/helm@master'
       with:
-        args: get pods
+        token: '${{ github.token }}'
+        version: '${{ github.sha }}'
+        chart: './helm'
+        task: 'upgrade'
+        namespace: 'netology'
+        values: |
+          image.repository: "cr.yandex/${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPOSITORY }}"
+        value-files: "./helm/values.yaml"
+        
+      env:
+        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
