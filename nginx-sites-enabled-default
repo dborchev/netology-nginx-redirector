@@ -38,7 +38,7 @@ server {
   location /deepping {
     default_type text/html;
     add_header Content-Type text/html;
-    return 200 "<!DOCTYPE html><h2>🐱‍👤Teapot Service Is UP 🚀🚀🚀!</h2>\n";
+    return 200 "<!DOCTYPE html><h2>Teapot Service Is UP!</h2>\n";
   }
   
   # our model app has to do something
