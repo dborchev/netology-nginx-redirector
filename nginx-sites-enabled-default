@@ -33,11 +33,12 @@ server {
   location /ping {
     return 200;
   }
-
+  
   # our model app has to do something
   location / {
     default_type text/plain;
-    return 418 "418 I'm a teapot"; # I'm a teapot
+    add_header Content-Type text/plain;
+    return 418 "418 I'm a teapot"; # RFC 2324
   }
 
 }
