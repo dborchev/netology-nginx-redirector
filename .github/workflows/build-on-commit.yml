@@ -1,0 +1,31 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v3
+    - name: Login to Yandex Cloud Container Registry
+      id: login-cr
+      uses: yc-actions/yc-cr-login@v1
+      with:
+        yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+    - name: Build and push to YC
+      env:
+        CR_REPOSITORY: ${{ secrets.CR_REPOSITORY }}
+        CR_REGISTRY: ${{ secrets.CR_REGISTRY }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build . --file Dockerfile --tag cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG --tag cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:latest
+        docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG
+        docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:latest

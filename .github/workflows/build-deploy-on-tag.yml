@@ -1,10 +1,9 @@
-name: Docker Image CI
+name: Build and Deploy on Tag
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
 
 jobs:
 
@@ -24,11 +23,11 @@ jobs:
       env:
         CR_REPOSITORY: ${{ secrets.CR_REPOSITORY }}
         CR_REGISTRY: ${{ secrets.CR_REGISTRY }}
-        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_TAG: ${{ github.ref_name }}
       run: |
-        docker build . --file Dockerfile --tag cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG --tag cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:latest
+        docker build . --file Dockerfile --tag cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:${{ github.ref_name }} --tag cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG
         docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG
-        docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:latest
+        docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:${{ github.ref_name }}
         
   deploy:
     runs-on: 'ubuntu-latest'
@@ -37,11 +36,11 @@ jobs:
     - name: 'Checkout'
       uses: 'actions/checkout@v3'
 
-    - name: 'Deploy with Helm'
+    - name: 'Deploy Teapot with Helm'
       uses: WyriHaximus/github-action-helm3@v3
       with:
         kubeconfig: '${{ secrets.KUBECONFIG }}'
-        exec: helm upgrade latest ./helm --install --namespace netology --set image.repository="cr.yandex/${CR_REGISTRY}/${CR_REPOSITORY}"
+        exec: helm upgrade latest ./helm --install --namespace netology --set image.repository="cr.yandex/${CR_REGISTRY}/${CR_REPOSITORY}" --set image.tag="${{ github.ref_name }}"
       env:
         CR_REPOSITORY: ${{ secrets.CR_REPOSITORY }}
         CR_REGISTRY: ${{ secrets.CR_REGISTRY }}
@@ -52,8 +51,8 @@ jobs:
     steps:
      - name: 'Prepare kubectl config'
        run: mkdir -p $HOME/.kube; echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
-     - name: 'Get teapot load balancer IP'
+     - name: 'Get Teapot load balancer IP'
        id: svc
        run: echo "TEAPOT=$( kubectl get -n netology svc | grep teapot | awk -F' ' '{print $4}')" >> $GITHUB_ENV
-     - name: 'Test teapot ping'
+     - name: 'Test Teapot ping'
        run: curl https://${{ env.TEAPOT }}/ping --insecure -I
